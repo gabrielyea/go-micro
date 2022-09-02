@@ -1,6 +1,18 @@
-import React from 'react';
+import axios from 'axios';
+import React, { useState } from 'react';
 
 export default function Home() {
+  const [data, setData] = useState();
+
+  const buttonHandler = async () => {
+    const res = await axios.get('http://localhost:8081/v1/');
+    const {
+      data: { msg },
+    } = res;
+    setData(msg);
+    console.log(msg);
+  };
+
   return (
     <div
       style={{
@@ -21,7 +33,7 @@ export default function Home() {
         }}
       >
         <h1> Test Microservices </h1>
-        <textarea name="" id="" cols="30" rows="10" placeholder="output here" />
+        <textarea name="" id="" cols="30" rows="10" />
       </div>
 
       <div
@@ -39,7 +51,11 @@ export default function Home() {
           }}
         >
           <h2>Sent</h2>
+          <button type="button" onClick={buttonHandler}>
+            click me
+          </button>
           <textarea
+            value={data}
             placeholder="nothing sent"
             name=""
             id=""
