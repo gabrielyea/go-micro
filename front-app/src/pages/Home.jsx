@@ -7,10 +7,9 @@ export default function Home() {
   const buttonHandler = async () => {
     const res = await axios.get('http://localhost:8081/v1/');
     const {
-      data: { msg },
+      data: { message },
     } = res;
-    setData(msg);
-    console.log(msg);
+    setData(message);
   };
 
   return (

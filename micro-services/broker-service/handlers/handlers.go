@@ -7,11 +7,12 @@ import (
 )
 
 type MyResponse struct {
-	Msg string `json:"msg"`
+	Message string `json:"message"`
+	Data    any    `json:"data,omitempty"`
 }
 
 func GetData(c *gin.Context) {
 	var res MyResponse
-	res.Msg = "hello"
+	res.Message = "hello"
 	c.JSON(http.StatusOK, res)
 }
