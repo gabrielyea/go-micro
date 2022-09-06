@@ -1,11 +1,11 @@
 FROM golang:1.18-alpine
 
-RUN mkdir /app
-
-COPY . /app
-
 WORKDIR /app
 
-RUN go build -o authApp ./cmd/api
+COPY . /app
+RUN go mod download && go mod verify 
+RUN go install github.com/cosmtrek/air@latest
+COPY . .
 
-CMD ["/app/authApp"]
+
+CMD ["air"]
