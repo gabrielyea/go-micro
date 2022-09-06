@@ -1,0 +1,48 @@
+services:
+  broker-service:
+    build:
+      context: ./micro-services/broker-service
+    restart: always
+    ports:
+      - 8081:8081
+  authentication-service:
+    build:
+      context: ./micro-services/authentication-service
+    restart: always
+    ports:
+      - 8082:8082
+    networks:
+      - backend
+    volumes:
+      - ./micro-services/authentication-service:/app
+    depends_on:
+      - db
+  db:
+    image: postgres:alpine
+    restart: always
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: db
+    ports:
+      - 5432:5432
+    networks:
+      - backend
+  # pgadmin:
+  #   container_name: pgadmin4_container
+  #   image: dpage/pgadmin4
+  #   restart: always
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: admin@admin.com
+  #     PGADMIN_DEFAULT_PASSWORD: root
+  #   ports:
+  #     - "5050:80"
+  #   networks:
+  #     - backend
+
+volumes:
+  postgres-data:
+networks:
+  backend:
