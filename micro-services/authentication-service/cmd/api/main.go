@@ -24,6 +24,8 @@ func main() {
 	handlers := handlers.NewUserHandler(service)
 
 	router.GET("/v1/user/:id", handlers.GetUserById)
+	router.DELETE("/v1/user/:id", handlers.DeleteUserById)
+	router.POST("/v1/user/new", handlers.CreateUser)
 
 	router.Run(":8082")
 
