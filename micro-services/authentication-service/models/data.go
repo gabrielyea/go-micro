@@ -6,9 +6,9 @@ type Response struct {
 
 type User struct {
 	ID        int    `json:"id"`
-	Email     string `json:"emial"`
-	FirstName string `json:"first_name,omitempty"`
-	LastName  string `json:"last_name,omitempty"`
-	Password  string `json:"password"`
+	Email     string `json:"email" binding:"required,email"`
+	FirstName string `json:"first_name" binding:"required"`
+	LastName  string `json:"last_name" binding:"required"`
+	Password  string `json:"password" binding:"required"`
 	Active    int    `json:"active"`
 }
