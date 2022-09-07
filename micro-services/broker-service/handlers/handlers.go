@@ -13,6 +13,5 @@ type MyResponse struct {
 
 func GetData(c *gin.Context) {
 	var res MyResponse
-	res.Message = "hello"
 	c.JSON(http.StatusOK, res)
 }
