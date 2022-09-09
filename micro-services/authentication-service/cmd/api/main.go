@@ -4,6 +4,7 @@ import (
 	"auth/db"
 	"auth/handlers"
 	"auth/repo"
+	"auth/routes"
 	"auth/services"
 	"fmt"
 
@@ -19,15 +20,14 @@ func main() {
 	defer db.Close()
 
 	router := gin.Default()
+	router.Use(routes.CorsConfig())
 
 	repo := repo.NewUserRepo(db)
 	service := services.NewUserService(repo)
 	handlers := handlers.NewAuthHandler(service)
 
-	router.GET("/v1/user/:id", handlers.GetUserById)
-	router.DELETE("/v1/user/:id", handlers.DeleteUserById)
-	router.POST("/v1/user/new", handlers.CreateUser)
 	router.GET("/v1/authenticate", handlers.Authenticate)
+	router.GET("/v1/", handlers.Test)
 
-	router.Run(":8082")
+	router.Run(":80")
 }

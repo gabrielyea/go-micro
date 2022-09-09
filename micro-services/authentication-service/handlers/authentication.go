@@ -15,6 +15,7 @@ type AuthenticationHandlerInterface interface {
 	DeleteUserById(c *gin.Context)
 	CreateUser(c *gin.Context)
 	Authenticate(c *gin.Context)
+	Test(c *gin.Context)
 }
 
 type authenticationHandler struct {
@@ -84,5 +85,11 @@ func (h *authenticationHandler) Authenticate(c *gin.Context) {
 
 	c.JSON(http.StatusAccepted, gin.H{
 		"status": "valid user",
+	})
+}
+
+func (h *authenticationHandler) Test(c *gin.Context) {
+	c.JSON(http.StatusAccepted, gin.H{
+		"message": "just a test",
 	})
 }

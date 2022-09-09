@@ -3,6 +3,7 @@ package services
 import (
 	"auth/models"
 	"auth/repo"
+	"errors"
 	"fmt"
 )
 
@@ -67,5 +68,6 @@ func (s *userService) Authenticate(email, password string) (*models.Response, er
 		return &res, nil
 	}
 
-	return nil, fmt.Errorf("invalid credentials: %s", err.Error())
+	credErr := errors.New("invalid credentials")
+	return nil, credErr
 }

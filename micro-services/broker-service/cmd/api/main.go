@@ -1,7 +1,9 @@
 package main
 
 import (
+	"broker/handlers"
 	"broker/routes"
+	"broker/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,10 +13,11 @@ func main() {
 	router := gin.Default()
 	router.Use(routes.CorsConfig())
 
-	v1 := router.Group("/v1")
-	{
-		routes.Public(v1.Group("/"))
-	}
+	s := services.NewBrokerService()
+	h := handlers.NewBrokerHandler(s)
 
-	router.Run(":8081")
+	publicGroup := routes.Public(router, h)
+	router.RouterGroup = *publicGroup
+
+	router.Run(":80")
 }
