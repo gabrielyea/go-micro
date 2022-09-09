@@ -42,7 +42,7 @@ func (h *brokerHandler) SubmissionHandler(c *gin.Context) {
 func (h *brokerHandler) Authenticate(req models.AuthPayload, c *gin.Context) {
 	jsonData, _ := json.Marshal(req)
 
-	request, err := http.NewRequest("GET", "http://auth-service/v1/authenticate", bytes.NewBuffer(jsonData))
+	request, err := http.NewRequest("POST", "http://auth-service/v1/authenticate", bytes.NewBuffer(jsonData))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -63,6 +63,10 @@ func (h *brokerHandler) Authenticate(req models.AuthPayload, c *gin.Context) {
 			"error": res.Status,
 		})
 	}
+
+	c.JSON(http.StatusAccepted, gin.H{
+		"message": "logged in!",
+	})
 }
 
 func (h *brokerHandler) Test(c *gin.Context) {

@@ -21,12 +21,13 @@ func main() {
 
 	router := gin.Default()
 	router.Use(routes.CorsConfig())
+	// router.Use(cors.Default())
 
 	repo := repo.NewUserRepo(db)
 	service := services.NewUserService(repo)
 	handlers := handlers.NewAuthHandler(service)
 
-	router.GET("/v1/authenticate", handlers.Authenticate)
+	router.POST("/v1/authenticate", handlers.Authenticate)
 	router.GET("/v1/", handlers.Test)
 
 	router.Run(":80")

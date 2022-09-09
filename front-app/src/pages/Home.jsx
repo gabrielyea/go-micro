@@ -1,5 +1,6 @@
 import axios from 'axios';
 import React, { useState } from 'react';
+import AuthForm from '../components/AuthForm';
 
 export default function Home() {
   const [data, setData] = useState();
@@ -32,7 +33,7 @@ export default function Home() {
         }}
       >
         <h1> Test Microservices </h1>
-        <textarea name="" id="" cols="30" rows="10" />
+        <AuthForm />
       </div>
 
       <div
