@@ -13,6 +13,7 @@ type UserInterface interface {
 	GetUserByEmail(string) (*models.User, error)
 	CreateUser(*models.User) (*models.Response, error)
 	DeleteUserById(int) (*models.Response, error)
+	CheckPasswordHash(string, string) bool
 }
 
 type userRepo struct {
@@ -33,34 +34,36 @@ func (r *userRepo) GetUserById(id int) (*models.User, error) {
 	defer qry.Close()
 
 	var user models.User
-	err = qry.QueryRow(id).Scan(&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.Active)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("repo error: user not found")
-		}
-		return nil, fmt.Errorf("repo error: %s", err.Error())
+	row := qry.QueryRow(id)
+	err = row.Scan(&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.Active, &user.Password)
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("id not found: %s", err.Error())
+	} else if err != nil {
+		return nil, err
 	}
-	fmt.Printf("user: %v\n", user)
 
 	return &user, nil
 }
 
 func (r *userRepo) GetUserByEmail(email string) (*models.User, error) {
-	stmnt := `select id, email, first_name, last_name, active from users where email = $1`
+	stmnt := `select id, email, first_name, last_name, active, password from users where email = $1`
 	var err error
 	qry, err := r.db.Prepare(stmnt)
 	if err != nil {
+		fmt.Printf("HELLO email: %v\n", email)
 		return nil, fmt.Errorf(err.Error())
 	}
 	defer qry.Close()
 
 	var user models.User
-	if qry.QueryRow(email).Scan(&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.Active); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("repo error: email not found")
-		}
-		return nil, fmt.Errorf("repo error: %s", err.Error())
+	row := qry.QueryRow(email)
+	err = row.Scan(&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.Active, &user.Password)
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("email not found: %s", err.Error())
+	} else if err != nil {
+		return nil, err
 	}
+
 	return &user, nil
 }
 
@@ -110,15 +113,15 @@ func (r *userRepo) DeleteUserById(id int) (*models.Response, error) {
 	return &res, nil
 }
 
+func (r *userRepo) CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
+
 func hashPassowrd(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {
 		return "", fmt.Errorf(err.Error())
 	}
 	return string(bytes), err
-}
-
-func checkPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
 }

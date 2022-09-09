@@ -13,6 +13,8 @@ services:
       - 8082:8082
     networks:
       - backend
+    environment:
+      DNS: "host=db port=5432 user=postgres password=postgres dbname=db sslmode=disable timezone=UTC connect_timeout=5"
     volumes:
       - ./micro-services/authentication-service:/app
     depends_on:
