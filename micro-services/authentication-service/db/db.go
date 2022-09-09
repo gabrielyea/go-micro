@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
@@ -29,13 +30,11 @@ func ConnectDB() (*sql.DB, error) {
 }
 
 func NewPgConn() (*sql.DB, error) {
-
-	dbConnStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s",
-		"db", "5432", "postgres", "postgres", "db")
+	dsn := os.Getenv("DNS")
+	fmt.Printf("dsn: %v\n", dsn)
 
 	var err error
-	db, err = sql.Open("pgx", dbConnStr)
-	fmt.Printf("dbConnStr: %v\n", dbConnStr)
+	db, err = sql.Open("pgx", dsn)
 
 	if err != nil {
 		return nil, fmt.Errorf("couldn't prepare connection to database %s, %s", "db", err)

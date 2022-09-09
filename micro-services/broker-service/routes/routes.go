@@ -6,6 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Public(g *gin.RouterGroup) {
-	g.GET("/", handlers.GetData)
+func Public(g *gin.Engine, h handlers.BrokerHandlerInterface) *gin.RouterGroup {
+
+	v1 := g.Group("/v1")
+	{
+		v1.GET("/auth", h.SubmissionHandler)
+		v1.GET("/", h.Test)
+	}
+	return v1
 }

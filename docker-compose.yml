@@ -3,16 +3,23 @@ services:
     build:
       context: ./micro-services/broker-service
     restart: always
+    volumes:
+      - ./micro-services/broker-service:/app
     ports:
-      - 8081:8081
+      - 8081:80
+    networks:
+      - backend
   authentication-service:
+    hostname: auth-service
     build:
       context: ./micro-services/authentication-service
     restart: always
     ports:
-      - 8082:8082
+      - 8082:80
     networks:
       - backend
+    environment:
+      DNS: "host=db port=5432 user=postgres password=postgres dbname=db sslmode=disable timezone=UTC connect_timeout=5"
     volumes:
       - ./micro-services/authentication-service:/app
     depends_on:

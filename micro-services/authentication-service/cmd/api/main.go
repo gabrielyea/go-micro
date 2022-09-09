@@ -4,6 +4,7 @@ import (
 	"auth/db"
 	"auth/handlers"
 	"auth/repo"
+	"auth/routes"
 	"auth/services"
 	"fmt"
 
@@ -14,17 +15,19 @@ func main() {
 	db, err := db.ConnectDB()
 	if err != nil {
 		fmt.Errorf("something went wrong with db %s", err)
+		return
 	}
 	defer db.Close()
 
 	router := gin.Default()
+	router.Use(routes.CorsConfig())
 
 	repo := repo.NewUserRepo(db)
 	service := services.NewUserService(repo)
-	handlers := handlers.NewUserHandler(service)
+	handlers := handlers.NewAuthHandler(service)
 
-	router.GET("/v1/user/:id", handlers.GetUserById)
+	router.GET("/v1/authenticate", handlers.Authenticate)
+	router.GET("/v1/", handlers.Test)
 
-	router.Run(":8082")
-
+	router.Run(":80")
 }
