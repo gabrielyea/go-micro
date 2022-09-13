@@ -24,6 +24,21 @@ services:
       - ./micro-services/authentication-service:/app
     depends_on:
       - db
+
+  logger-service:
+    hostname: logger-service
+    build:
+      context: ./micro-services/logger-service
+    restart: always
+    ports:
+      - 8083:80
+    networks:
+      - backend
+    volumes:
+      - ./micro-services/logger-service:/app
+    depends_on:
+      - mongo
+
   db:
     image: postgres:alpine
     restart: always
@@ -37,17 +52,20 @@ services:
       - 5432:5432
     networks:
       - backend
-  # pgadmin:
-  #   container_name: pgadmin4_container
-  #   image: dpage/pgadmin4
-  #   restart: always
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: admin@admin.com
-  #     PGADMIN_DEFAULT_PASSWORD: root
-  #   ports:
-  #     - "5050:80"
-  #   networks:
-  #     - backend
+
+  mongo:
+    image: mongo:latest
+    hostname: mongo
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_DATABASE: logs
+      MONGO_INITDB_ROOT_USERNAME: gab
+      MONGO_INITDB_ROOT_PASSWORD: S3cret
+    volumes:
+      - ./mongo-data:/data/db
+    networks:
+      - backend
 
 volumes:
   postgres-data:

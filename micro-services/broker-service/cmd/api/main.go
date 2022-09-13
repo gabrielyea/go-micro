@@ -17,8 +17,7 @@ func main() {
 	s := services.NewBrokerService()
 	h := handlers.NewBrokerHandler(s)
 
-	publicGroup := routes.Public(router, h)
-	router.RouterGroup = *publicGroup
+	router.RouterGroup = *routes.SetRoutes(router, h)
 
 	router.Run(":80")
 }

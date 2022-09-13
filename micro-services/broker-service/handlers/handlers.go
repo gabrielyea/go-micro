@@ -5,6 +5,7 @@ import (
 	"broker/services"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,7 +15,6 @@ import (
 type BrokerHandlerInterface interface {
 	SubmissionHandler(*gin.Context)
 	Authenticate(models.AuthPayload, *gin.Context)
-	Test(*gin.Context)
 }
 
 type brokerHandler struct {
@@ -36,11 +36,14 @@ func (h *brokerHandler) SubmissionHandler(c *gin.Context) {
 	switch request.Action {
 	case "auth":
 		h.Authenticate(request.Auth, c)
+	case "log":
+		h.Log(request.Log)
 	}
 }
 
 func (h *brokerHandler) Authenticate(req models.AuthPayload, c *gin.Context) {
 	jsonData, _ := json.Marshal(req)
+	var logData models.LogEntry
 
 	request, err := http.NewRequest("POST", "http://auth-service/v1/authenticate", bytes.NewBuffer(jsonData))
 	if err != nil {
@@ -53,24 +56,47 @@ func (h *brokerHandler) Authenticate(req models.AuthPayload, c *gin.Context) {
 	client := http.Client{}
 	res, err := client.Do(request)
 	if err != nil {
+		logData.Name = "authorization"
+		logData.Data = fmt.Sprintf("failed authorization attempt: %d", res.StatusCode)
+		h.Log(logData)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
+
 	if res.StatusCode != 202 {
+		logData.Name = "authorization"
+		logData.Data = fmt.Sprintf("failed authorization attempt: %d", res.StatusCode)
+		h.Log(logData)
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": res.Status,
 		})
+		return
 	}
 
+	logData.Name = "authorization"
+	logData.Data = fmt.Sprintf("succesfull authorization: %d", res.StatusCode)
+	h.Log(logData)
 	c.JSON(http.StatusAccepted, gin.H{
 		"message": "logged in!",
 	})
 }
 
-func (h *brokerHandler) Test(c *gin.Context) {
-	c.JSON(http.StatusAccepted, gin.H{
-		"message": "just a test",
-	})
+func (h *brokerHandler) Log(req models.LogEntry) {
+	jsonData, _ := json.Marshal(req)
+	request, err := http.NewRequest("POST", "http://logger-service/public/logs/new", bytes.NewBuffer(jsonData))
+	if err != nil {
+		fmt.Printf("err.Error(): %v\n", err.Error())
+		return
+	}
+
+	client := http.Client{}
+	res, err := client.Do(request)
+	if err != nil {
+		fmt.Printf("err.Error(): %v\n", err.Error())
+		return
+	}
+
+	fmt.Printf("res: %v\n", res.StatusCode)
 }
