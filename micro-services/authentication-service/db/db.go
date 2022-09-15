@@ -31,7 +31,6 @@ func ConnectDB() (*sql.DB, error) {
 
 func NewPgConn() (*sql.DB, error) {
 	dsn := os.Getenv("DNS")
-	fmt.Printf("dsn: %v\n", dsn)
 
 	var err error
 	db, err = sql.Open("pgx", dsn)

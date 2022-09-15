@@ -26,8 +26,7 @@ func main() {
 	service := services.NewUserService(repo)
 	handlers := handlers.NewAuthHandler(service)
 
-	router.GET("/v1/authenticate", handlers.Authenticate)
-	router.GET("/v1/", handlers.Test)
+	router.POST("/v1/authenticate", handlers.Authenticate)
 
 	router.Run(":80")
 }
