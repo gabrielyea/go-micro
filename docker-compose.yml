@@ -1,4 +1,17 @@
 services:
+  mail-service:
+    hostname: mailer
+    build:
+      context: ./micro-services/mail-service
+    networks:
+      - backend
+    depends_on:
+      - mailhog
+    ports:
+      - 8084:80
+    volumes:
+      - ./micro-services/mail-service:/app
+
   broker-service:
     build:
       context: ./micro-services/broker-service
@@ -24,7 +37,6 @@ services:
       - ./micro-services/authentication-service:/app
     depends_on:
       - db
-
   logger-service:
     hostname: logger-service
     build:
@@ -38,7 +50,6 @@ services:
       - ./micro-services/logger-service:/app
     depends_on:
       - mongo
-
   db:
     image: postgres:alpine
     restart: always
@@ -52,7 +63,6 @@ services:
       - 5432:5432
     networks:
       - backend
-
   mongo:
     image: mongo:latest
     hostname: mongo
@@ -66,7 +76,14 @@ services:
       - ./mongo-data:/data/db
     networks:
       - backend
-
+  mailhog:
+    image: mailhog/mailhog:latest
+    hostname: mailhog
+    ports:
+      - 1025:1025
+      - 8025:8025
+    networks:
+      - backend
 volumes:
   postgres-data:
 networks:

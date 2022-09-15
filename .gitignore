@@ -2,3 +2,5 @@
 tmp
 postgres
 mongo-data
+micro-services/mail-service/config.yml
+micro-services/*/tmp

@@ -12,7 +12,6 @@ func main() {
 
 	router := gin.Default()
 	router.Use(routes.CorsConfig())
-	// router.Use(cors.Default())
 
 	s := services.NewBrokerService()
 	h := handlers.NewBrokerHandler(s)
