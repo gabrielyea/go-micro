@@ -26,7 +26,7 @@ func main() {
 	service := services.NewUserService(repo)
 	handlers := handlers.NewAuthHandler(service)
 
-	router.POST("/v1/authenticate", handlers.Authenticate)
+	routes.SetRoutes(router, handlers)
 
 	router.Run(":80")
 }

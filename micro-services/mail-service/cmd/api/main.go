@@ -5,6 +5,7 @@ import (
 	"mail-service/handlers"
 	"mail-service/mailer"
 	"mail-service/models"
+	"mail-service/routes"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -30,9 +31,7 @@ func main() {
 	s := mailer.NewMailer(mail)
 	h := handlers.NewMailHandler(s)
 
-	router.POST("/send", h.SendMail)
-	router.POST("/gomail", h.GoMail)
+	routes.SetRoutes(router, h)
 
 	router.Run(conf.WebPort)
-
 }

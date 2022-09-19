@@ -38,6 +38,8 @@ func (h *brokerHandler) SubmissionHandler(c *gin.Context) {
 		h.Authenticate(request.Auth, c)
 	case "log":
 		h.Log(request.Log)
+	case "mail":
+		h.Mail(request.Mail)
 	}
 }
 
@@ -45,7 +47,7 @@ func (h *brokerHandler) Authenticate(req models.AuthPayload, c *gin.Context) {
 	jsonData, _ := json.Marshal(req)
 	var logData models.LogEntry
 
-	request, err := http.NewRequest("POST", "http://auth-service/v1/authenticate", bytes.NewBuffer(jsonData))
+	request, err := http.NewRequest("POST", "http://auth-service/v1/auth", bytes.NewBuffer(jsonData))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -85,7 +87,7 @@ func (h *brokerHandler) Authenticate(req models.AuthPayload, c *gin.Context) {
 
 func (h *brokerHandler) Log(req models.LogEntry) {
 	jsonData, _ := json.Marshal(req)
-	request, err := http.NewRequest("POST", "http://logger-service/public/logs/new", bytes.NewBuffer(jsonData))
+	request, err := http.NewRequest("POST", "http://logger-service/v1/logs/new", bytes.NewBuffer(jsonData))
 	if err != nil {
 		fmt.Printf("err.Error(): %v\n", err.Error())
 		return
@@ -99,4 +101,22 @@ func (h *brokerHandler) Log(req models.LogEntry) {
 	}
 
 	fmt.Printf("res: %v\n", res.StatusCode)
+}
+
+func (h *brokerHandler) Mail(payload models.MailPayload) {
+	jsonData, _ := json.Marshal(payload)
+	request, err := http.NewRequest("POST", "http://mail-service/v1/mail", bytes.NewBuffer(jsonData))
+	if err != nil {
+		fmt.Printf("err.Error(): %v\n", err.Error())
+		return
+	}
+
+	client := http.Client{}
+	res, err := client.Do(request)
+	if err != nil {
+		fmt.Printf("err: %v\n", err.Error())
+		return
+	}
+
+	fmt.Printf("res.StatusCode: %v\n", res.StatusCode)
 }

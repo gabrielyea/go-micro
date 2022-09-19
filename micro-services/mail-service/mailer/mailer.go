@@ -85,7 +85,6 @@ func (m *mailer) SendGoMail(mailData models.Message) error {
 	// msg.Attach("/home/User/cat.jpg")
 
 	n := gomail.NewDialer(m.mail.Host, m.mail.Port, m.mail.Username, m.mail.Password)
-	// n := gomail.NewDialer("mailhog", 1025, "", "")
 
 	// Send the email
 	if err := n.DialAndSend(msg); err != nil {
