@@ -1,0 +1,2 @@
+remoteurl: "amqp://guest:guest@rabbit/"
+localurl: amqp://guest:guest@localhost:5672/
