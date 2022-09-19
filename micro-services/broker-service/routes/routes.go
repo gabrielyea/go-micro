@@ -9,16 +9,14 @@ import (
 func SetRoutes(g *gin.Engine, h handlers.BrokerHandlerInterface) *gin.RouterGroup {
 
 	v1 := g.Group("/v1")
-	{
-		public(g, h)
-	}
+	publicRoutes(v1, h)
 	return v1
 }
 
-func public(g *gin.Engine, h handlers.BrokerHandlerInterface) *gin.RouterGroup {
-	pbRoutes := g.Group("/public")
+func publicRoutes(g *gin.RouterGroup, h handlers.BrokerHandlerInterface) {
+	g.Group("/")
 	{
-		pbRoutes.POST("/auth", h.SubmissionHandler)
+		g.POST("/auth-service", h.SubmissionHandler)
+		g.POST("/send", h.SubmissionHandler)
 	}
-	return pbRoutes
 }

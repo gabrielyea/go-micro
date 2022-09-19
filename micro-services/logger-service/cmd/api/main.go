@@ -33,7 +33,7 @@ func main() {
 	s := services.NewLoggerServices(r)
 	h := handlers.NewLoggerHandlers(s)
 
-	router.RouterGroup = *routes.SetRoutes(router, h)
+	routes.SetRoutes(router, h)
 
 	router.Run(newConf.InternalPort)
 

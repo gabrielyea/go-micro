@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type MailHandler interface {
+type MailHandlerInterface interface {
 	SendMail(*gin.Context)
 	GoMail(*gin.Context)
 }
@@ -17,7 +17,7 @@ type mailHandler struct {
 	mailer mailer.MailerInterface
 }
 
-func NewMailHandler(m mailer.MailerInterface) MailHandler {
+func NewMailHandler(m mailer.MailerInterface) MailHandlerInterface {
 	return &mailHandler{m}
 }
 

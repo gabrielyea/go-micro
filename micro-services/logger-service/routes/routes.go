@@ -8,19 +8,16 @@ import (
 
 func SetRoutes(g *gin.Engine, h handlers.LoggerHandInterface) *gin.RouterGroup {
 	v1 := g.Group("/v1")
-	{
-		public(g, h)
-	}
+	publicRoutes(v1, h)
 	return v1
 }
 
-func public(g *gin.Engine, h handlers.LoggerHandInterface) *gin.RouterGroup {
-	pbGroup := g.Group("/public")
+func publicRoutes(g *gin.RouterGroup, h handlers.LoggerHandInterface) {
+	g.Group("/")
 	{
-		pbGroup.GET("/index", h.All)
-		pbGroup.GET("/logs/:id", h.GetById)
-		pbGroup.POST("/logs/new", h.Insert)
-		pbGroup.DELETE("/logs/delete/all", h.DropCollection)
+		g.GET("/index", h.All)
+		g.GET("/logs/:id", h.GetById)
+		g.POST("/logs/new", h.Insert)
+		g.DELETE("/logs/delete/all", h.DropCollection)
 	}
-	return pbGroup
 }
