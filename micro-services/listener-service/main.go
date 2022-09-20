@@ -1,13 +1,10 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"listener/config"
 	"listener/db"
 	"listener/rabbitQueue"
-	"strconv"
-	"time"
 )
 
 func main() {
@@ -34,13 +31,13 @@ func main() {
 
 	topics := []string{"alert", "auth", "logs"}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	for i, key := range topics {
-		s := strconv.Itoa(i)
-		msg := fmt.Sprintf("message number: %s, key: %s", s, key)
-		rabbit.Send(msg, key, ctx)
-	}
-	defer cancel()
+	// ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	// for i, key := range topics {
+	// 	s := strconv.Itoa(i)
+	// 	msg := fmt.Sprintf("message number: %s, key: %s", s, key)
+	// 	rabbit.Send(msg, key, ctx)
+	// }
+	// defer cancel()
 
 	err = rabbit.Listen(topics)
 	if err != nil {

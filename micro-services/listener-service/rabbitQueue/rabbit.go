@@ -1,9 +1,13 @@
 package rabbitQueue
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"listener/models"
 	"log"
+	"net/http"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -24,6 +28,7 @@ func NewRabbit(db *amqp.Connection, ch *amqp.Channel, q *amqp.Queue) RabbitInter
 }
 
 func (r *rabbit) Listen(topics []string) error {
+	fmt.Printf("\"listening\": %v\n", topics)
 	for _, topic := range topics {
 		r.ch.QueueBind(
 			r.q.Name,
@@ -51,11 +56,12 @@ func (r *rabbit) Listen(topics []string) error {
 
 	go func() {
 		for d := range msgs {
-			fmt.Printf("Got a message: %s\n", d.Body)
+			var payload models.Payload
+			_ = json.Unmarshal(d.Body, &payload)
+			handlePayload(payload)
 		}
 	}()
 
-	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
 	<-forever
 	return nil
 }
@@ -88,4 +94,28 @@ func (r *rabbit) Send(msg string, key string, ctx context.Context) {
 		return
 	}
 	log.Printf("Sent %s\n", msg)
+}
+
+func handlePayload(payload models.Payload) error {
+	err := logEvent(payload)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func logEvent(payload models.Payload) error {
+	jsonData, _ := json.Marshal(payload)
+
+	request, err := http.NewRequest("POST", "http://logger-service/v1/logs/new", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+
+	client := http.Client{}
+	_, err = client.Do(request)
+	if err != nil {
+		return err
+	}
+	return nil
 }

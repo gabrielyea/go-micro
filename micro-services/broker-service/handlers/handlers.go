@@ -37,7 +37,7 @@ func (h *brokerHandler) SubmissionHandler(c *gin.Context) {
 	case "auth":
 		h.Authenticate(request.Auth, c)
 	case "log":
-		h.Log(request.Log)
+		h.LogWithRabbit(c, request.Log)
 	case "mail":
 		h.Mail(request.Mail)
 	}
@@ -94,13 +94,11 @@ func (h *brokerHandler) Log(req models.LogEntry) {
 	}
 
 	client := http.Client{}
-	res, err := client.Do(request)
+	_, err = client.Do(request)
 	if err != nil {
 		fmt.Printf("err.Error(): %v\n", err.Error())
 		return
 	}
-
-	fmt.Printf("res: %v\n", res.StatusCode)
 }
 
 func (h *brokerHandler) Mail(payload models.MailPayload) {
@@ -112,11 +110,23 @@ func (h *brokerHandler) Mail(payload models.MailPayload) {
 	}
 
 	client := http.Client{}
-	res, err := client.Do(request)
+	_, err = client.Do(request)
 	if err != nil {
 		fmt.Printf("err: %v\n", err.Error())
 		return
 	}
+}
 
-	fmt.Printf("res.StatusCode: %v\n", res.StatusCode)
+func (h *brokerHandler) LogWithRabbit(c *gin.Context, payload models.LogEntry) {
+	err := h.s.Push(payload.Name, payload.Data, "logs")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"message":  "event logged with rabbit",
+		"logentry": payload,
+	})
 }
