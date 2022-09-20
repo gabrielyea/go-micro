@@ -16,7 +16,7 @@ func SetRoutes(g *gin.Engine, h handlers.BrokerHandlerInterface) *gin.RouterGrou
 func publicRoutes(g *gin.RouterGroup, h handlers.BrokerHandlerInterface) {
 	g.Group("/")
 	{
-		g.POST("/auth-service", h.SubmissionHandler)
-		g.POST("/send", h.SubmissionHandler)
+		g.POST("/auth", h.SubmissionHandler)
+		g.POST("/log", h.SubmissionHandler)
 	}
 }

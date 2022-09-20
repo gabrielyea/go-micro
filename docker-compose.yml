@@ -1,4 +1,15 @@
 services:
+  listener-service:
+    hostname: listener
+    build:
+      context: ./micro-services/listener-service
+    networks:
+      - backend
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./micro-services/listener-service:/app
+
   mail-service:
     hostname: mailer
     build:
@@ -11,7 +22,6 @@ services:
       - 8084:80
     volumes:
       - ./micro-services/mail-service:/app
-
   broker-service:
     build:
       context: ./micro-services/broker-service
@@ -84,7 +94,18 @@ services:
       - 8025:8025
     networks:
       - backend
+  rabbitmq:
+    image: rabbitmq:alpine
+    hostname: "rabbit"
+    networks:
+      - backend
+      - frontend
+    ports:
+      - 5672:5672
+    volumes:
+      - ./rabbit-db/rabbitmq/:/var/lib/rabbitmq/
 volumes:
   postgres-data:
 networks:
   backend:
+  frontend:
