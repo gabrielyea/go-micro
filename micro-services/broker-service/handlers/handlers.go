@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/rpc"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -37,7 +38,7 @@ func (h *brokerHandler) SubmissionHandler(c *gin.Context) {
 	case "auth":
 		h.Authenticate(request.Auth, c)
 	case "log":
-		h.LogWithRabbit(c, request.Log)
+		h.LogWithRPC(c, request.Log)
 	case "mail":
 		h.Mail(request.Mail)
 	}
@@ -128,5 +129,34 @@ func (h *brokerHandler) LogWithRabbit(c *gin.Context, payload models.LogEntry) {
 	c.JSON(http.StatusOK, gin.H{
 		"message":  "event logged with rabbit",
 		"logentry": payload,
+	})
+}
+
+func (h *brokerHandler) LogWithRPC(c *gin.Context, log models.LogEntry) {
+	client, err := rpc.Dial("tcp", "logger-service:5001")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+
+	var payload models.RPCPayload
+	payload.Name = log.Name
+	payload.Data = log.Data
+
+	var res string
+	err = client.Call("RPCrepo.LogInfo", payload, &res)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+			"data:":   payload,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "ok!",
+		"payload": payload,
 	})
 }

@@ -9,6 +9,7 @@ import (
 	"logger-service/repo"
 	"logger-service/routes"
 	"logger-service/services"
+	"net/rpc"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,7 +20,6 @@ func main() {
 		fmt.Printf("err: %v\n", err.Error())
 		return
 	}
-
 	db, err := db.ConnectDB(*newConf)
 	if err != nil {
 		fmt.Printf("err: %v\n", err.Error())
@@ -28,6 +28,17 @@ func main() {
 	defer db.Disconnect(context.TODO())
 
 	router := gin.Default()
+
+	rpcRepo := repo.NewRPCRepo(db)
+	rpcServer := services.NewRpcServer(rpcRepo)
+
+	err = rpc.Register(rpcRepo)
+	if err != nil {
+		fmt.Printf("err: %v\n", err.Error())
+		return
+	}
+
+	go rpcServer.Listen(*newConf)
 
 	r := repo.NewLoggerRepo(db)
 	s := services.NewLoggerServices(r)
