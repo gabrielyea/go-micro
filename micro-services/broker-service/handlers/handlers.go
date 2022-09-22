@@ -1,21 +1,26 @@
 package handlers
 
 import (
+	"broker/logs"
 	"broker/models"
 	"broker/services"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/rpc"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type BrokerHandlerInterface interface {
 	SubmissionHandler(*gin.Context)
-	Authenticate(models.AuthPayload, *gin.Context)
+	LogWithGRPC(*gin.Context)
 }
 
 type brokerHandler struct {
@@ -146,7 +151,7 @@ func (h *brokerHandler) LogWithRPC(c *gin.Context, log models.LogEntry) {
 	payload.Data = log.Data
 
 	var res string
-	err = client.Call("RPCrepo.LogInfo", payload, &res)
+	err = client.Call("RPCServer.LogInfo", payload, &res)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": err.Error(),
@@ -158,5 +163,47 @@ func (h *brokerHandler) LogWithRPC(c *gin.Context, log models.LogEntry) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "ok!",
 		"payload": payload,
+	})
+}
+
+func (h *brokerHandler) LogWithGRPC(c *gin.Context) {
+	var reqPayload models.RequestPayload
+	if err := c.BindJSON(&reqPayload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+
+	conn, err := grpc.Dial("logger-service:50001", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+	defer conn.Close()
+
+	client := logs.NewLogServiceClient(conn)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	_, err = client.WriteLog(ctx, &logs.LogRequest{
+		LogEntry: &logs.Log{
+			Name: reqPayload.Log.Name,
+			Data: reqPayload.Log.Data,
+		},
+	})
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Ok!",
+		"payload": reqPayload,
 	})
 }

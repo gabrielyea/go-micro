@@ -1,9 +1,11 @@
 package services
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"logger-service/config"
+	"logger-service/models"
 	"logger-service/repo"
 	"net"
 	"net/rpc"
@@ -11,19 +13,20 @@ import (
 
 type RPCserviceInt interface {
 	Listen(config.Config)
+	LogInfo(models.RPCPayload, *string) error
 }
 
-type rPCServer struct {
-	r repo.RPCRepoInterfcate
+type RPCServer struct {
+	r repo.LoggerRepoInterface
 }
 
-func NewRpcServer(r repo.RPCRepoInterfcate) RPCserviceInt {
-	return &rPCServer{r}
+func NewRpcServer(r repo.LoggerRepoInterface) RPCserviceInt {
+	return &RPCServer{r}
 }
 
-func (s *rPCServer) Listen(conf config.Config) {
+func (s *RPCServer) Listen(conf config.Config) {
 	log.Println("Starting RPC server on ", conf.RpcPort)
-	listen, err := net.Listen("tcp", "logger-service:5001")
+	listen, err := net.Listen("tcp", fmt.Sprintf("logger-service%s", conf.RpcPort))
 	if err != nil {
 		fmt.Printf("err: %v\n", err.Error())
 		return
@@ -38,4 +41,18 @@ func (s *rPCServer) Listen(conf config.Config) {
 		fmt.Printf("rpcCon: %v\n", rpcCon)
 		go rpc.ServeConn(rpcCon)
 	}
+}
+
+func (s *RPCServer) LogInfo(payload models.RPCPayload, res *string) error {
+	ctx := context.TODO()
+	var log models.LogEntry
+	log.Name = payload.Name
+	log.Data = payload.Data
+	err := s.r.Insert(ctx, log)
+	if err != nil {
+		fmt.Printf("err: %v\n", err.Error())
+		return err
+	}
+	*res = "Processed payload by RPC " + payload.Name
+	return nil
 }

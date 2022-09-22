@@ -20,6 +20,7 @@ func main() {
 		fmt.Printf("err: %v\n", err.Error())
 		return
 	}
+	// db := mongo.Client{}
 	db, err := db.ConnectDB(*newConf)
 	if err != nil {
 		fmt.Printf("err: %v\n", err.Error())
@@ -29,23 +30,24 @@ func main() {
 
 	router := gin.Default()
 
-	rpcRepo := repo.NewRPCRepo(db)
-	rpcServer := services.NewRpcServer(rpcRepo)
+	r := repo.NewLoggerRepo(db)
+	s := services.NewLoggerServices(r)
+	h := handlers.NewLoggerHandlers(s)
 
-	err = rpc.Register(rpcRepo)
+	rpcServer := services.NewRpcServer(r)
+	gRpcServer := services.NewGrpcServer(r)
+
+	err = rpc.Register(rpcServer)
+
 	if err != nil {
 		fmt.Printf("err: %v\n", err.Error())
 		return
 	}
 
 	go rpcServer.Listen(*newConf)
-
-	r := repo.NewLoggerRepo(db)
-	s := services.NewLoggerServices(r)
-	h := handlers.NewLoggerHandlers(s)
+	go gRpcServer.Listen(*newConf)
 
 	routes.SetRoutes(router, h)
-
 	router.Run(newConf.InternalPort)
 
 }
