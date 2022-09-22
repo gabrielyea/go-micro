@@ -29,3 +29,8 @@ type MqPayload struct {
 	Name string `json:"name"`
 	Data string `json:"data"`
 }
+
+type RPCPayload struct {
+	Name string
+	Data string
+}

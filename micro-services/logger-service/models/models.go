@@ -9,3 +9,8 @@ type LogEntry struct {
 	CreatedAt time.Time `bson:"create_at" json:"created_at"`
 	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
 }
+
+type RPCPayload struct {
+	Name string
+	Data string
+}

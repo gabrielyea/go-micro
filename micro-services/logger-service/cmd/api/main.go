@@ -9,6 +9,7 @@ import (
 	"logger-service/repo"
 	"logger-service/routes"
 	"logger-service/services"
+	"net/rpc"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,7 +20,7 @@ func main() {
 		fmt.Printf("err: %v\n", err.Error())
 		return
 	}
-
+	// db := mongo.Client{}
 	db, err := db.ConnectDB(*newConf)
 	if err != nil {
 		fmt.Printf("err: %v\n", err.Error())
@@ -33,8 +34,20 @@ func main() {
 	s := services.NewLoggerServices(r)
 	h := handlers.NewLoggerHandlers(s)
 
-	routes.SetRoutes(router, h)
+	rpcServer := services.NewRpcServer(r)
+	gRpcServer := services.NewGrpcServer(r)
 
+	err = rpc.Register(rpcServer)
+
+	if err != nil {
+		fmt.Printf("err: %v\n", err.Error())
+		return
+	}
+
+	go rpcServer.Listen(*newConf)
+	go gRpcServer.Listen(*newConf)
+
+	routes.SetRoutes(router, h)
 	router.Run(newConf.InternalPort)
 
 }

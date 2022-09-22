@@ -12,6 +12,8 @@ type Config struct {
 	MongoPass    string `yaml:"mongoPass"`
 	LocalDbUrl   string `yaml:"localDbUrl"`
 	DbUrl        string `yaml:"dbUrl"`
+	RpcPort      string `yaml:"rpcPort"`
+	GrpcPort     string `yaml:"gRpcPort"`
 }
 
 func NewConfig(fileName string) (*Config, error) {

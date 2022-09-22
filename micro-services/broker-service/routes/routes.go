@@ -17,6 +17,6 @@ func publicRoutes(g *gin.RouterGroup, h handlers.BrokerHandlerInterface) {
 	g.Group("/")
 	{
 		g.POST("/auth", h.SubmissionHandler)
-		g.POST("/log", h.SubmissionHandler)
+		g.POST("/log-grpc", h.LogWithGRPC)
 	}
 }
