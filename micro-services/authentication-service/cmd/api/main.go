@@ -3,6 +3,7 @@ package main
 import (
 	"auth/db"
 	"auth/handlers"
+	"auth/middelware"
 	"auth/repo"
 	"auth/routes"
 	"auth/services"
@@ -20,6 +21,7 @@ func main() {
 	defer db.Close()
 
 	router := gin.Default()
+	router.GET("/testing", middelware.TokenValidation())
 	router.Use(routes.CorsConfig())
 
 	repo := repo.NewUserRepo(db)

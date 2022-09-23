@@ -4,16 +4,14 @@ import (
 	"auth/models"
 	"database/sql"
 	"fmt"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 type UserInterface interface {
 	GetUserById(int) (*models.User, error)
 	GetUserByEmail(string) (*models.User, error)
+	GetAll() (*[]models.User, error)
 	CreateUser(*models.User) (*models.Response, error)
 	DeleteUserById(int) (*models.Response, error)
-	CheckPasswordHash(string, string) bool
 }
 
 type userRepo struct {
@@ -26,7 +24,7 @@ func NewUserRepo(db *sql.DB) UserInterface {
 
 func (r *userRepo) GetUserById(id int) (*models.User, error) {
 	var err error
-	stmnt := `select id, email, first_name, last_name, active from users where id = $1 `
+	stmnt := `select id, email, first_name, last_name, role from users where id = $1 `
 	qry, err := r.db.Prepare(stmnt)
 	if err != nil {
 		return nil, fmt.Errorf(err.Error())
@@ -35,7 +33,7 @@ func (r *userRepo) GetUserById(id int) (*models.User, error) {
 
 	var user models.User
 	row := qry.QueryRow(id)
-	err = row.Scan(&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.Active, &user.Password)
+	err = row.Scan(&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.Role)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("id not found: %s", err.Error())
 	} else if err != nil {
@@ -46,20 +44,19 @@ func (r *userRepo) GetUserById(id int) (*models.User, error) {
 }
 
 func (r *userRepo) GetUserByEmail(email string) (*models.User, error) {
-	stmnt := `select id, email, first_name, last_name, active, password from users where email = $1`
+	stmnt := `select id, email, first_name, last_name, password_hash, role from users where email = $1`
 	var err error
 	qry, err := r.db.Prepare(stmnt)
 	if err != nil {
-		fmt.Printf("HELLO email: %v\n", email)
-		return nil, fmt.Errorf(err.Error())
+		return nil, err
 	}
 	defer qry.Close()
 
 	var user models.User
 	row := qry.QueryRow(email)
-	err = row.Scan(&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.Active, &user.Password)
+	err = row.Scan(&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.PasswordHash, &user.Role)
 	if err == sql.ErrNoRows {
-		return nil, fmt.Errorf("email not found: %s", err.Error())
+		return nil, err
 	} else if err != nil {
 		return nil, err
 	}
@@ -69,7 +66,7 @@ func (r *userRepo) GetUserByEmail(email string) (*models.User, error) {
 
 func (r *userRepo) CreateUser(user *models.User) (*models.Response, error) {
 	var err error
-	stmnt := `insert into users (email, first_name, last_name, password, active)
+	stmnt := `insert into users (email, first_name, last_name, password_hash, role)
 			values($1, $2, $3, $4, $5)`
 
 	qry, err := r.db.Prepare(stmnt)
@@ -78,11 +75,10 @@ func (r *userRepo) CreateUser(user *models.User) (*models.Response, error) {
 	}
 	defer qry.Close()
 
-	hash, err := hashPassowrd(user.Password)
 	if err != nil {
 		return nil, fmt.Errorf("repo error: %s", err.Error())
 	}
-	_, err = qry.Exec(user.Email, user.FirstName, user.LastName, hash, user.Active)
+	_, err = qry.Exec(user.Email, user.FirstName, user.LastName, user.PasswordHash, user.Role)
 	if err != nil {
 		return nil, fmt.Errorf("repo error: %s", err.Error())
 	}
@@ -113,15 +109,25 @@ func (r *userRepo) DeleteUserById(id int) (*models.Response, error) {
 	return &res, nil
 }
 
-func (r *userRepo) CheckPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
-}
+func (r *userRepo) GetAll() (*[]models.User, error) {
+	var userList []models.User
+	stmnt := `select id, email, first_name, last_name FROM users`
 
-func hashPassowrd(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	rows, err := r.db.Query(stmnt)
 	if err != nil {
-		return "", fmt.Errorf(err.Error())
+		return nil, err
 	}
-	return string(bytes), err
+	defer rows.Close()
+
+	for rows.Next() {
+		var usr models.User
+		err = rows.Scan(&usr.ID, &usr.Email, &usr.FirstName, &usr.LastName)
+		if err != nil {
+			return nil, err
+		}
+		userList = append(userList, usr)
+	}
+
+	fmt.Printf("userList: %v\n", userList)
+	return &userList, nil
 }

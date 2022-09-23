@@ -5,11 +5,14 @@ import (
 	"auth/repo"
 	"errors"
 	"fmt"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserServiceInterface interface {
 	GetUserById(id int) (*models.User, error)
 	GetUserByEmail(email string) (*models.User, error)
+	GetAll() (*[]models.User, error)
 	DeleteUserById(id int) (*models.Response, error)
 	CreateUser(*models.User) (*models.Response, error)
 	Authenticate(string, string) (*models.Response, error)
@@ -57,12 +60,11 @@ func (s *userService) GetUserByEmail(email string) (*models.User, error) {
 
 func (s *userService) Authenticate(email, password string) (*models.Response, error) {
 	usr, err := s.r.GetUserByEmail(email)
-
 	if err != nil {
-		return nil, fmt.Errorf("invalid credentials: %s", err.Error())
+		return nil, err
 	}
 
-	if s.r.CheckPasswordHash(password, usr.Password) {
+	if checkPasswordHash(password, usr.PasswordHash) {
 		var res models.Response
 		res.Data = "valid user"
 		return &res, nil
@@ -70,4 +72,17 @@ func (s *userService) Authenticate(email, password string) (*models.Response, er
 
 	credErr := errors.New("invalid credentials")
 	return nil, credErr
+}
+
+func (s *userService) GetAll() (*[]models.User, error) {
+	res, err := s.r.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func checkPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
 }

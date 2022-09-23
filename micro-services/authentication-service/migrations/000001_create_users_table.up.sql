@@ -3,6 +3,6 @@ CREATE TABLE IF NOT EXISTS users(
    email VARCHAR (50) UNIQUE NOT NULL,
    first_name VARCHAR (50) NOT NULL,
    last_name VARCHAR (50) NOT NULL,
-   password VARCHAR NOT NULL,
-   active INT
+   password_hash VARCHAR NOT NULL,
+   role INT
 );
